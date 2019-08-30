@@ -1,0 +1,12 @@
+[package]
+name = "con-rs"
+version = "0.1.0"
+authors = ["Martin Indra <martin.indra@mgn.cz>"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clap = "2.33.0"
+dialoguer = "0.4.0"
+regex = "1.2.1"
