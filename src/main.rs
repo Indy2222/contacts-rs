@@ -4,6 +4,7 @@ use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 mod actions;
 mod add;
 mod contact;
+mod edit;
 mod init;
 mod print;
 mod search;
@@ -13,6 +14,10 @@ fn main() -> Result<()> {
     let init_cmd = SubCommand::with_name("init").about("(Re-)initialize contacts storage.");
 
     let print_cmd = SubCommand::with_name("print").about("Pretty print search matches.");
+    let edit_cmd = SubCommand::with_name("edit").about(
+        "Edit a contact. This command fails if no contact or more than one \
+         contact is matched.",
+    );
 
     let search_cmd = SubCommand::with_name("search")
         .about(
@@ -22,6 +27,7 @@ fn main() -> Result<()> {
         )
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .subcommand(print_cmd)
+        .subcommand(edit_cmd)
         .arg(
             Arg::with_name("full-name")
                 .long("full-name")
@@ -84,6 +90,7 @@ fn handle_search(matches: &ArgMatches) -> Result<()> {
     let action_subcommand = matches.subcommand();
     let action: Box<dyn actions::MatchAction> = match action_subcommand {
         ("print", _) => Box::new(print::PrintExporter::new()),
+        ("edit", _) => Box::new(edit::EditContact::new()),
         _ => bail!("Invalid export method."),
     };
 

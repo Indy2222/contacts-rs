@@ -16,8 +16,6 @@
 
   * API documentation: https://developers.google.com/contacts/v3/
 
-* Add support for contact editing from command line.
-
 * Add support for contact merging from command line.
 
 * Add support for git similar to pass.

@@ -139,6 +139,22 @@ impl Contact {
         }
     }
 
+    pub fn set_full_name(&mut self, full_name: String) -> Result<()> {
+        if self.entity_name.is_some() {
+            bail!("Full name and entity name cannot be set at the same time.");
+        }
+        self.full_name = Some(full_name);
+        Ok(())
+    }
+
+    pub fn set_entity_name(&mut self, entity_name: String) -> Result<()> {
+        if self.full_name.is_some() {
+            bail!("Full name and entity name cannot be set at the same time.");
+        }
+        self.entity_name = Some(entity_name);
+        Ok(())
+    }
+
     pub fn full_name(&self) -> Option<&str> {
         self.full_name.as_ref().map(String::as_ref)
     }
