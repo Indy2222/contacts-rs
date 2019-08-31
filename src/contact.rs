@@ -17,9 +17,9 @@ pub struct Contacts {
 pub struct Contact {
     full_name: Option<String>,
     entity_name: Option<String>,
-    tels: HashMap<String, String>,
-    emails: HashMap<String, String>,
-    labels: HashMap<String, String>,
+    pub tels: HashMap<String, String>,
+    pub emails: HashMap<String, String>,
+    pub labels: HashMap<String, String>,
 }
 
 impl Contacts {
@@ -138,35 +138,11 @@ impl Contact {
         }
     }
 
-    pub fn set_tels(&mut self, tels: HashMap<String, String>) {
-        self.tels = tels;
-    }
-
-    pub fn set_emails(&mut self, emails: HashMap<String, String>) {
-        self.emails = emails;
-    }
-
-    pub fn set_labels(&mut self, labels: HashMap<String, String>) {
-        self.labels = labels;
-    }
-
     pub fn full_name(&self) -> Option<&str> {
         self.full_name.as_ref().map(String::as_ref)
     }
 
     pub fn entity_name(&self) -> Option<&str> {
         self.entity_name.as_ref().map(String::as_ref)
-    }
-
-    pub fn tels(&self) -> &HashMap<String, String> {
-        &self.tels
-    }
-
-    pub fn emails(&self) -> &HashMap<String, String> {
-        &self.emails
-    }
-
-    pub fn labels(&self) -> &HashMap<String, String> {
-        &self.labels
     }
 }

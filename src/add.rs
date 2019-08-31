@@ -25,14 +25,9 @@ pub fn add_contact() -> Result<()> {
         Contact::with_entity_name(entity_name.unwrap())
     };
 
-    let emails = prompt_map("E-mail address")?;
-    contact.set_emails(emails);
-
-    let tels = prompt_map("Telephone number")?;
-    contact.set_tels(tels);
-
-    let labels = prompt_map("Label")?;
-    contact.set_labels(labels);
+    contact.emails = prompt_map("E-mail address")?;
+    contact.tels = prompt_map("Telephone number")?;
+    contact.labels = prompt_map("Label")?;
 
     let mut contacts = Contacts::load_from_home()?;
     contacts.add(contact);

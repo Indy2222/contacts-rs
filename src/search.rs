@@ -46,23 +46,23 @@ pub fn search_and_print(options: SearchOptions) -> Result<()> {
             println!("Entity name: {}", entity_name);
         }
 
-        if !result.tels().is_empty() {
+        if !result.tels.is_empty() {
             println!("Telephone numbers:");
-            for (key, value) in result.tels() {
+            for (key, value) in &result.tels {
                 println!("  {}: {}", key, value);
             }
         }
 
-        if !result.emails().is_empty() {
+        if !result.emails.is_empty() {
             println!("Emails:");
-            for (key, value) in result.emails() {
+            for (key, value) in &result.emails {
                 println!("  {}: {}", key, value);
             }
         }
 
-        if !result.labels().is_empty() {
+        if !result.labels.is_empty() {
             println!("Labels:");
-            for (key, value) in result.labels() {
+            for (key, value) in &result.labels {
                 println!("  {}: {}", key, value);
             }
         }
