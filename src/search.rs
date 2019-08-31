@@ -39,34 +39,7 @@ pub fn search_and_print(options: SearchOptions) -> Result<()> {
 
     println!("--------------------------------------------------");
     for result in results {
-        if let Some(full_name) = result.full_name() {
-            println!("Full name: {}", full_name);
-        }
-        if let Some(entity_name) = result.entity_name() {
-            println!("Entity name: {}", entity_name);
-        }
-
-        if !result.tels.is_empty() {
-            println!("Telephone numbers:");
-            for (key, value) in &result.tels {
-                println!("  {}: {}", key, value);
-            }
-        }
-
-        if !result.emails.is_empty() {
-            println!("Emails:");
-            for (key, value) in &result.emails {
-                println!("  {}: {}", key, value);
-            }
-        }
-
-        if !result.labels.is_empty() {
-            println!("Labels:");
-            for (key, value) in &result.labels {
-                println!("  {}: {}", key, value);
-            }
-        }
-
+        print!("{}", result);
         println!("--------------------------------------------------");
     }
 

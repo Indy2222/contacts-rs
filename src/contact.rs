@@ -2,6 +2,7 @@ use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
+use std::fmt;
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
@@ -144,5 +145,39 @@ impl Contact {
 
     pub fn entity_name(&self) -> Option<&str> {
         self.entity_name.as_ref().map(String::as_ref)
+    }
+}
+
+impl fmt::Display for Contact {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(full_name) = &self.full_name {
+            writeln!(f, "Full name: {}", full_name)?;
+        }
+        if let Some(entity_name) = &self.entity_name {
+            writeln!(f, "Entity name: {}", entity_name)?;
+        }
+
+        if !self.tels.is_empty() {
+            writeln!(f, "Telephone numbers:")?;
+            for (key, value) in &self.tels {
+                writeln!(f, "  {}: {}", key, value)?;
+            }
+        }
+
+        if !self.emails.is_empty() {
+            writeln!(f, "Emails:")?;
+            for (key, value) in &self.emails {
+                writeln!(f, "  {}: {}", key, value)?;
+            }
+        }
+
+        if !self.labels.is_empty() {
+            writeln!(f, "Labels:")?;
+            for (key, value) in &self.labels {
+                writeln!(f, "  {}: {}", key, value)?;
+            }
+        }
+
+        Ok(())
     }
 }
