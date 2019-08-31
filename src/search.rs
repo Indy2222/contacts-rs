@@ -1,3 +1,4 @@
+use crate::actions::MatchAction;
 use crate::contact::{Contact, Contacts};
 use anyhow::Result;
 use regex::Regex;
@@ -26,32 +27,21 @@ impl SearchOptions {
     }
 }
 
-pub fn search_and_print(options: SearchOptions) -> Result<()> {
-    let contacts = Contacts::load_from_home()?;
-    let results = search(options, &contacts);
+pub fn search(options: SearchOptions, action: Box<dyn MatchAction>) -> Result<()> {
+    let mut contacts = Contacts::load_from_home()?;
 
-    if results.is_empty() {
-        println!("No contacts found.");
-        return Ok(());
-    }
+    let results: Vec<&mut Contact> = contacts
+        .contacts_mut()
+        .iter_mut()
+        .filter(|contact| is_match(contact, &options))
+        .collect();
 
-    println!("{} contacts found:\n", results.len());
-
-    println!("--------------------------------------------------");
-    for result in results {
-        print!("{}", result);
-        println!("--------------------------------------------------");
+    let save = action.process(results)?;
+    if save {
+        contacts.save_to_home()?;
     }
 
     Ok(())
-}
-
-pub fn search(options: SearchOptions, contacts: &Contacts) -> Vec<&Contact> {
-    contacts
-        .contacts()
-        .iter()
-        .filter(|&contact| is_match(contact, &options))
-        .collect()
 }
 
 fn is_match(contact: &Contact, options: &SearchOptions) -> bool {

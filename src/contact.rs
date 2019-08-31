@@ -67,8 +67,8 @@ impl Contacts {
         self.save_to_path(data_path)
     }
 
-    pub fn contacts(&self) -> &[Contact] {
-        self.contacts.as_ref()
+    pub fn contacts_mut(&mut self) -> &mut [Contact] {
+        self.contacts.as_mut()
     }
 
     pub fn add(&mut self, contact: Contact) {

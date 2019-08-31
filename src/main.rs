@@ -1,19 +1,27 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 
+mod actions;
 mod add;
 mod contact;
 mod init;
+mod print;
 mod search;
 
 fn main() -> Result<()> {
     let add_cmd = SubCommand::with_name("add").about("Add a new contact.");
     let init_cmd = SubCommand::with_name("init").about("(Re-)initialize contacts storage.");
+
+    let print_cmd = SubCommand::with_name("print").about("Pretty print search matches.");
+
     let search_cmd = SubCommand::with_name("search")
         .about(
-            "Search through contacts with various filters and print matches. \
-             If no filters are specified then all contacts are printed.",
+            "Search through contacts with various filters and perform an \
+             action on matches. If no filters are specified then all \
+             contacts are included.",
         )
+        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .subcommand(print_cmd)
         .arg(
             Arg::with_name("full-name")
                 .long("full-name")
@@ -73,5 +81,11 @@ fn handle_search(matches: &ArgMatches) -> Result<()> {
             .context("Invalid entity-name regex.")?;
     }
 
-    search::search_and_print(options)
+    let action_subcommand = matches.subcommand();
+    let action: Box<dyn actions::MatchAction> = match action_subcommand {
+        ("print", _) => Box::new(print::PrintExporter::new()),
+        _ => bail!("Invalid export method."),
+    };
+
+    search::search(options, action)
 }
