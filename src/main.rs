@@ -6,6 +6,7 @@ mod add;
 mod contact;
 mod edit;
 mod init;
+mod mutt;
 mod print;
 mod search;
 
@@ -13,10 +14,14 @@ fn main() -> Result<()> {
     let add_cmd = SubCommand::with_name("add").about("Add a new contact.");
     let init_cmd = SubCommand::with_name("init").about("(Re-)initialize contacts storage.");
 
-    let print_cmd = SubCommand::with_name("print").about("Pretty print search matches.");
-    let edit_cmd = SubCommand::with_name("edit").about(
+    let search_print_cmd = SubCommand::with_name("print").about("Pretty print search matches.");
+    let search_edit_cmd = SubCommand::with_name("edit").about(
         "Edit a contact. This command fails if no contact or more than one \
          contact is matched.",
+    );
+    let search_mutt_cmd = SubCommand::with_name("mutt").about(
+        "Search contacts and print matches in Mutt compatible format. \
+         This command could be used by `query_command` in Mutt.",
     );
 
     let search_cmd = SubCommand::with_name("search")
@@ -26,8 +31,9 @@ fn main() -> Result<()> {
              contacts are included.",
         )
         .setting(AppSettings::SubcommandRequiredElseHelp)
-        .subcommand(print_cmd)
-        .subcommand(edit_cmd)
+        .subcommand(search_print_cmd)
+        .subcommand(search_edit_cmd)
+        .subcommand(search_mutt_cmd)
         .arg(
             Arg::with_name("full-name")
                 .long("full-name")
@@ -49,6 +55,18 @@ fn main() -> Result<()> {
                      not match the regex won't be included in the search \
                      output. Person contacts are excluded unless \
                      --full-name is also provided.",
+                )
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("name")
+                .long("name")
+                .short("q")
+                .conflicts_with_all(&["full-name", "entity-name"])
+                .help(
+                    "A regular expression. Contacts whose full name or entity \
+                     name does not match the regex won't be included in the \
+                     search output.",
                 )
                 .takes_value(true),
         );
@@ -86,10 +104,19 @@ fn handle_search(matches: &ArgMatches) -> Result<()> {
             .set_entity_name_regex(entity_name_regex)
             .context("Invalid entity-name regex.")?;
     }
+    if let Some(name_regex) = matches.value_of("name") {
+        options
+            .set_full_name_regex(name_regex)
+            .context("Invalid name regex.")?;
+        options
+            .set_entity_name_regex(name_regex)
+            .context("Invalid name regex.")?;
+    }
 
     let action_subcommand = matches.subcommand();
     let action: Box<dyn actions::MatchAction> = match action_subcommand {
         ("print", _) => Box::new(print::PrintExporter::new()),
+        ("mutt", _) => Box::new(mutt::Mutt::new()),
         ("edit", _) => Box::new(edit::EditContact::new()),
         _ => bail!("Invalid export method."),
     };
