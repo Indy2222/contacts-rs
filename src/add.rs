@@ -4,20 +4,22 @@ use dialoguer::Input;
 use std::collections::HashMap;
 
 pub fn add_contact() -> Result<()> {
-    let full_name = prompt("Full name")?;
-    let mut entity_name = None;
+    let (entity_name, full_name) = loop {
+        let full_name = prompt("Full name")?;
 
-    if full_name.is_none() {
-        entity_name = prompt("Entity name")?;
-    }
+        let entity_name = if full_name.is_none() {
+            prompt("Entity name")?
+        } else {
+            None
+        };
 
-    if full_name.is_none() && entity_name.is_none() {
-        bail!("One of full name or entity name must be given.");
-    }
+        if full_name.is_none() && entity_name.is_none() {
+            eprintln!("One of full name or entity name must be given.");
+            continue;
+        }
 
-    if full_name.is_some() && entity_name.is_some() {
-        bail!("Contact can't have both full name and entity name.");
-    }
+        break (entity_name, full_name);
+    };
 
     let mut contact = if full_name.is_some() {
         Contact::with_full_name(full_name.unwrap())
@@ -25,14 +27,9 @@ pub fn add_contact() -> Result<()> {
         Contact::with_entity_name(entity_name.unwrap())
     };
 
-    let emails = prompt_map("E-mail address")?;
-    contact.set_emails(emails);
-
-    let tels = prompt_map("Telephone number")?;
-    contact.set_tels(tels);
-
-    let labels = prompt_map("Label")?;
-    contact.set_labels(labels);
+    contact.emails = prompt_map("E-mail address")?;
+    contact.tels = prompt_map("Telephone number")?;
+    contact.labels = prompt_map("Label")?;
 
     let mut contacts = Contacts::load_from_home()?;
     contacts.add(contact);

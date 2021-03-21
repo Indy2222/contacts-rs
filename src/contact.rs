@@ -2,6 +2,7 @@ use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
+use std::fmt;
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
@@ -17,9 +18,9 @@ pub struct Contacts {
 pub struct Contact {
     full_name: Option<String>,
     entity_name: Option<String>,
-    tels: HashMap<String, String>,
-    emails: HashMap<String, String>,
-    labels: HashMap<String, String>,
+    pub tels: HashMap<String, String>,
+    pub emails: HashMap<String, String>,
+    pub labels: HashMap<String, String>,
 }
 
 impl Contacts {
@@ -66,8 +67,8 @@ impl Contacts {
         self.save_to_path(data_path)
     }
 
-    pub fn contacts(&self) -> &[Contact] {
-        self.contacts.as_ref()
+    pub fn contacts_mut(&mut self) -> &mut [Contact] {
+        self.contacts.as_mut()
     }
 
     pub fn add(&mut self, contact: Contact) {
@@ -138,16 +139,20 @@ impl Contact {
         }
     }
 
-    pub fn set_tels(&mut self, tels: HashMap<String, String>) {
-        self.tels = tels;
+    pub fn set_full_name(&mut self, full_name: String) -> Result<()> {
+        if self.entity_name.is_some() {
+            bail!("Full name and entity name cannot be set at the same time.");
+        }
+        self.full_name = Some(full_name);
+        Ok(())
     }
 
-    pub fn set_emails(&mut self, emails: HashMap<String, String>) {
-        self.emails = emails;
-    }
-
-    pub fn set_labels(&mut self, labels: HashMap<String, String>) {
-        self.labels = labels;
+    pub fn set_entity_name(&mut self, entity_name: String) -> Result<()> {
+        if self.full_name.is_some() {
+            bail!("Full name and entity name cannot be set at the same time.");
+        }
+        self.entity_name = Some(entity_name);
+        Ok(())
     }
 
     pub fn full_name(&self) -> Option<&str> {
@@ -157,16 +162,38 @@ impl Contact {
     pub fn entity_name(&self) -> Option<&str> {
         self.entity_name.as_ref().map(String::as_ref)
     }
+}
 
-    pub fn tels(&self) -> &HashMap<String, String> {
-        &self.tels
-    }
+impl fmt::Display for Contact {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(full_name) = &self.full_name {
+            writeln!(f, "Full name: {}", full_name)?;
+        }
+        if let Some(entity_name) = &self.entity_name {
+            writeln!(f, "Entity name: {}", entity_name)?;
+        }
 
-    pub fn emails(&self) -> &HashMap<String, String> {
-        &self.emails
-    }
+        if !self.tels.is_empty() {
+            writeln!(f, "Telephone numbers:")?;
+            for (key, value) in &self.tels {
+                writeln!(f, "  {}: {}", key, value)?;
+            }
+        }
 
-    pub fn labels(&self) -> &HashMap<String, String> {
-        &self.labels
+        if !self.emails.is_empty() {
+            writeln!(f, "Emails:")?;
+            for (key, value) in &self.emails {
+                writeln!(f, "  {}: {}", key, value)?;
+            }
+        }
+
+        if !self.labels.is_empty() {
+            writeln!(f, "Labels:")?;
+            for (key, value) in &self.labels {
+                writeln!(f, "  {}: {}", key, value)?;
+            }
+        }
+
+        Ok(())
     }
 }
