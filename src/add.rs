@@ -1,10 +1,9 @@
 use crate::contact::{Contact, Contacts};
-use crate::error::InputError;
+use anyhow::{bail, Result};
 use dialoguer::Input;
 use std::collections::HashMap;
-use std::error::Error;
 
-pub fn add_contact() -> Result<(), Box<dyn Error>> {
+pub fn add_contact() -> Result<()> {
     let full_name = prompt("Full name")?;
     let mut entity_name = None;
 
@@ -13,11 +12,11 @@ pub fn add_contact() -> Result<(), Box<dyn Error>> {
     }
 
     if full_name.is_none() && entity_name.is_none() {
-        return input_error!("One of full name or entity name must be given.");
+        bail!("One of full name or entity name must be given.");
     }
 
     if full_name.is_some() && entity_name.is_some() {
-        return input_error!("Contact can't have both full name and entity name.");
+        bail!("Contact can't have both full name and entity name.");
     }
 
     let mut contact = if full_name.is_some() {
@@ -44,7 +43,7 @@ pub fn add_contact() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn prompt_map(name: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
+fn prompt_map(name: &str) -> Result<HashMap<String, String>> {
     eprintln!(
         "\nYou will be repeatedly asked for {} until you enter empty value.\n",
         name,
@@ -65,10 +64,7 @@ fn prompt_map(name: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
         let value = value.unwrap();
 
         if map.contains_key(&key) {
-            return Err(Box::new(InputError::new(format!(
-                "The map already contains key {}",
-                key
-            ))));
+            bail!("The map already contains key {}", key);
         }
 
         map.insert(key, value);
@@ -77,7 +73,7 @@ fn prompt_map(name: &str) -> Result<HashMap<String, String>, Box<dyn Error>> {
     Ok(map)
 }
 
-fn prompt(name: &str) -> Result<Option<String>, Box<dyn Error>> {
+fn prompt(name: &str) -> Result<Option<String>> {
     let result = Input::<String>::new()
         .with_prompt(name)
         .allow_empty(true)

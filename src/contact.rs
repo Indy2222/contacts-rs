@@ -1,7 +1,7 @@
+use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
-use std::error::Error;
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
@@ -31,36 +31,37 @@ impl Contacts {
 
     /// Load contacts data from an arbitrary path. The path must point to a
     /// valid JSON file with contact data.
-    pub fn load_from_path<P>(path: P) -> Result<Self, Box<dyn Error>>
+    pub fn load_from_path<P>(path: P) -> Result<Self>
     where
         P: AsRef<Path>,
     {
-        let file = File::open(path)?;
+        let file = File::open(path)
+            .context("Could not load contacts. Make sure contacts are initialized.")?;
         let reader = BufReader::new(file);
-        let contact = serde_json::from_reader(reader)?;
+        let contact = serde_json::from_reader(reader).context("Error while loading contacts.")?;
         Ok(contact)
     }
 
     /// Load contacts data from a standard path. See `load_from_path()`.
-    pub fn load_from_home() -> Result<Self, Box<dyn Error>> {
+    pub fn load_from_home() -> Result<Self> {
         let data_path = Self::get_contacts_file(false)?;
         Self::load_from_path(data_path.as_path())
     }
 
     /// Save contact data to an arbitrary path. If the file already exists it
     /// will be truncated.
-    pub fn save_to_path<P>(&self, path: P) -> Result<(), Box<dyn Error>>
+    pub fn save_to_path<P>(&self, path: P) -> Result<()>
     where
         P: AsRef<Path>,
     {
-        let file = File::create(path)?;
+        let file = File::create(path).context("Error while saving contacts.")?;
         let writer = BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, &self)?;
+        serde_json::to_writer_pretty(writer, &self).context("Error while saving contacts.")?;
         Ok(())
     }
 
     /// Save contacts to standard path. Pre-existing file is truncated.
-    pub fn save_to_home(&self) -> Result<(), Box<dyn Error>> {
+    pub fn save_to_home(&self) -> Result<()> {
         let data_path = Self::get_contacts_file(true)?;
         self.save_to_path(data_path)
     }
@@ -79,11 +80,16 @@ impl Contacts {
     ///
     /// * `create_dir` - create standard contacts directory if it does not
     ///   exist.
-    fn get_contacts_file(create_dir: bool) -> Result<PathBuf, Box<dyn Error>> {
+    fn get_contacts_file(create_dir: bool) -> Result<PathBuf> {
         let mut data_path = Self::get_contacts_dir()?;
 
         if create_dir {
-            fs::create_dir_all(data_path.as_path())?;
+            fs::create_dir_all(data_path.as_path()).with_context(|| {
+                format!(
+                    "Error during creation of directory with contacts: {}",
+                    data_path.display()
+                )
+            })?;
         }
 
         data_path.push("contacts.json");
@@ -91,11 +97,14 @@ impl Contacts {
     }
 
     /// Get path to standard contacts directory.
-    fn get_contacts_dir() -> Result<PathBuf, Box<dyn Error>> {
+    fn get_contacts_dir() -> Result<PathBuf> {
         let mut data_path = match env::var("XDG_DATA_HOME") {
             Ok(val) => PathBuf::from(val),
             Err(_) => {
-                let home = env::var("HOME")?;
+                let home = match env::var("HOME") {
+                    Ok(home) => home,
+                    Err(_) => bail!("Neither XDG_DATA_HOME nor HOME environment variable set."),
+                };
                 let mut path = PathBuf::from(home);
                 path.push(".local");
                 path.push("share");

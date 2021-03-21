@@ -1,15 +1,12 @@
+use anyhow::{Context, Result};
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
-use std::error::Error;
-
-#[macro_use]
-mod error;
 
 mod add;
 mod contact;
 mod init;
 mod search;
 
-fn main() {
+fn main() -> Result<()> {
     let add_cmd = SubCommand::with_name("add").about("Add a new contact.");
     let init_cmd = SubCommand::with_name("init").about("(Re-)initialize contacts storage.");
     let search_cmd = SubCommand::with_name("search")
@@ -55,25 +52,25 @@ fn main() {
         .subcommand(search_cmd)
         .get_matches();
 
-    let result = match matches.subcommand() {
+    match matches.subcommand() {
         ("add", _) => add::add_contact(),
         ("init", _) => init::init(),
         ("search", Some(matches)) => handle_search(matches),
         _ => panic!("Unrecognized command"),
-    };
-
-    if let Err(error) = result {
-        panic!("{}", error);
     }
 }
 
-fn handle_search(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+fn handle_search(matches: &ArgMatches) -> Result<()> {
     let mut options = search::SearchOptions::new();
     if let Some(full_name_regex) = matches.value_of("full-name") {
-        options.set_full_name_regex(full_name_regex)?;
+        options
+            .set_full_name_regex(full_name_regex)
+            .context("Invalid full-name regex.")?;
     }
     if let Some(entity_name_regex) = matches.value_of("entity-name") {
-        options.set_entity_name_regex(entity_name_regex)?;
+        options
+            .set_entity_name_regex(entity_name_regex)
+            .context("Invalid entity-name regex.")?;
     }
 
     search::search_and_print(options)

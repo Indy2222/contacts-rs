@@ -1,7 +1,7 @@
 use crate::contact::Contacts;
-use std::error::Error;
+use anyhow::Result;
 
-pub fn init() -> Result<(), Box<dyn Error>> {
+pub fn init() -> Result<()> {
     Contacts::new().save_to_home()?;
     eprintln!("Storage successfully initialized.");
     Ok(())

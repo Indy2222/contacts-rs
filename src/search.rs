@@ -1,6 +1,6 @@
 use crate::contact::{Contact, Contacts};
+use anyhow::Result;
 use regex::Regex;
-use std::error::Error;
 
 pub struct SearchOptions {
     full_name_regex: Option<Regex>,
@@ -15,18 +15,18 @@ impl SearchOptions {
         }
     }
 
-    pub fn set_full_name_regex(&mut self, full_name_regex: &str) -> Result<(), Box<dyn Error>> {
+    pub fn set_full_name_regex(&mut self, full_name_regex: &str) -> Result<()> {
         self.full_name_regex = Some(Regex::new(full_name_regex)?);
         Ok(())
     }
 
-    pub fn set_entity_name_regex(&mut self, entity_name_regex: &str) -> Result<(), Box<dyn Error>> {
+    pub fn set_entity_name_regex(&mut self, entity_name_regex: &str) -> Result<()> {
         self.entity_name_regex = Some(Regex::new(entity_name_regex)?);
         Ok(())
     }
 }
 
-pub fn search_and_print(options: SearchOptions) -> Result<(), Box<dyn Error>> {
+pub fn search_and_print(options: SearchOptions) -> Result<()> {
     let contacts = Contacts::load_from_home()?;
     let results = search(options, &contacts);
 
