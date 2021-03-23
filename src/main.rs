@@ -5,6 +5,7 @@ mod actions;
 mod add;
 mod contact;
 mod edit;
+mod git;
 mod init;
 mod mutt;
 mod print;
@@ -71,6 +72,15 @@ fn main() -> Result<()> {
                 .takes_value(true),
         );
 
+    let git_cmd = SubCommand::with_name("git")
+        .about("Perform a git command in the directory with contacts.")
+        .arg(
+            Arg::with_name("git-args")
+                .help("Argument to be passed to git.")
+                .last(true)
+                .multiple(true),
+        );
+
     let matches = App::new("con-rs")
         .version(env!("CARGO_PKG_VERSION"))
         .author("Martin Indra <martin.indra@mgn.cz>")
@@ -82,12 +92,14 @@ fn main() -> Result<()> {
         .subcommand(add_cmd)
         .subcommand(init_cmd)
         .subcommand(search_cmd)
+        .subcommand(git_cmd)
         .get_matches();
 
     match matches.subcommand() {
         ("add", _) => add::add_contact(),
         ("init", _) => init::init(),
         ("search", Some(matches)) => handle_search(matches),
+        ("git", Some(matches)) => handle_git(matches),
         _ => panic!("Unrecognized command"),
     }
 }
@@ -122,4 +134,13 @@ fn handle_search(matches: &ArgMatches) -> Result<()> {
     };
 
     search::search(options, action)
+}
+
+fn handle_git(matches: &ArgMatches) -> Result<()> {
+    let args = match matches.values_of("git-args") {
+        None => Vec::new(),
+        Some(values) => values.collect(),
+    };
+
+    git::call(args)
 }

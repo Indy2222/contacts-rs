@@ -15,11 +15,4 @@
 
 * Add support for contact merging from command line.
 
-* Add support for git similar to pass.
-
-  * This functionality should be optional, i.e. everything should work if git
-    is not installed or if contacts directory is not a git repository.
-
-  * Automatically commit after every modification.
-
-  * Create a git "pass through" sub-command `con-rs git <arguments to git>`.
+* Automatically git commit after any modification.
