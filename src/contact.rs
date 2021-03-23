@@ -98,7 +98,7 @@ impl Contacts {
     }
 
     /// Get path to standard contacts directory.
-    fn get_contacts_dir() -> Result<PathBuf> {
+    pub fn get_contacts_dir() -> Result<PathBuf> {
         let mut data_path = match env::var("XDG_DATA_HOME") {
             Ok(val) => PathBuf::from(val),
             Err(_) => {
