@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 pub fn add_contact() -> Result<()> {
     let (entity_name, full_name) = loop {
-        let full_name = prompt("Full name")?;
+        let full_name = prompt("Full name [skip if not a person]")?;
 
         let entity_name = if full_name.is_none() {
             prompt("Entity name")?
